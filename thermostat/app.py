@@ -12,7 +12,7 @@ class Thermometer:
         self.set_temperature = set_temperature
         self.current_temperature = current_temperature
         
-      def render(self):
+      def render_gui(self):
         '''this methods renders a GUI of a thermometer'''
         print("Set temperature:", self.set_temperature )
         print("Current temperature: ", self.current_temperature)
@@ -39,18 +39,11 @@ any_var = input("integrate this node to the Docker network & then press Enter")
 
 client.connect("nebula_mosquitto_container",1883,60) #connect to broker
 
-'''
-a=0
-while a<40:
-  gui.measure_temperature()
-  #print(gui.set_temperature)
-  gui.render()
-  a=a+1
-  time.sleep(0.2)
-'''
+
 
 while True: #loop forever
   time.sleep(3) #communication sleeps to save battery power
-  thermometer.measure_temperature()
-  thermometer.render()
-  client.publish("home/temp", thermometer.current_temperature)
+  thermometer.measure_temperature() #get a temp measurement
+  client.publish("home/temp", thermometer.current_temperature) #publish tempe
+  thermometer.render_gui() #render the gui
+  
