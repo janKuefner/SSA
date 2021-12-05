@@ -1,7 +1,7 @@
 import paho.mqtt.client as mqtt
 import time
 import random #used to create ID
-
+import os #used for clear screen
 
 def create_ID():
       return("cont"+str(random.randrange(1001,9999)))
@@ -43,6 +43,9 @@ print("MQTTS started")
 while True: #loop forever
   time.sleep(1) #communication sleeps to save battery power
   controller.update_temperature_from_nodes()
+  print('yolo')
+  #os.system('clear') 
+  os.system('printf "\033c"') #clears screen
 '''
 
 while True:

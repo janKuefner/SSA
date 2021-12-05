@@ -16,9 +16,14 @@ class Thermometer:
         
       def render_gui(self):
         '''this methods renders a GUI of a thermometer'''
+        print("sending...")
+        time.sleep(0.2) #show sending for a short time
+        os.system('printf "\033c"') #clears screen
+        '''print essential data from a thermometer'''
+        print("Client ID: ", client_id)
         print("Set temperature:", self.set_temperature )
         print("Current temperature: ", self.current_temperature)
-        print("----------------------------")
+        
         
       def create_payload(self):
         '''the following if statement is to simulate that the measured 
