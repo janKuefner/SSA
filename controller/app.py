@@ -3,6 +3,8 @@ import time
 import random #used to create ID
 import os #used for clear screen
 
+nodes = [] #create an empty list where all node objects are stored
+
 def create_ID():
       return("cont"+str(random.randrange(1001,9999)))
 
@@ -13,17 +15,20 @@ def on_message(client, userdata, msg):
       node object to store the values. Finally this method stores the 
       information of the payload in the correct node object
       '''
-      recevied_string = (msg.payload.decode()) #store received payload
-      type = (msg.topic[5:9]) #get the type from MQTT topic
-      ID=(recevied_string[4:8]) #disect the payload into ID
-      command=(recevied_string[8:11]) #disect the payload into command
-      value=(recevied_string[16:19]) #actuator / sensor value
-      print(recevied_string)
-      print(type)
-      print(ID)
-      print(command)
-      print(value) 
-      print("----------")
+      string_rcvd = (msg.payload.decode()) #store received payload
+      type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
+      ID_rcvd=(string_rcvd[4:8]) #disect the payload into ID
+      command_rcvd=(string_rcvd[8:11]) #disect the payload into command
+      value_rcvd=(string_rcvd[16:19]) #actuator / sensor value
+      '''check if node is known already'''
+      for node in nodes:
+            if (node.ID == ID_rcvd): #check if a node object exists with the ID
+                  node.value = value_rcvd #if so update value send
+                  node.last_seen = 0 #set time when last seen to zero
+                  break
+      else: #if not in list create a new object node an append it to nodes
+            new_node = Node(ID_rcvd, type_rcvd, value_rcvd, 0)
+            nodes.append(new_node)     
       
 
 class Controller:
@@ -32,8 +37,15 @@ class Controller:
             
       def render_gui(self):
             '''this methods renders a GUI of a controller'''
-            print("render GUI in here")
-            #os.system('printf "\033c"') #clears screen
+            os.system('printf "\033c"') #clears screen
+            for node in nodes:
+                  print("--------------------------------")
+                  print("Heating No. {0} set to XYZ °C".format(node.ID))
+                  print("{0} °C - measured {1} sec ago".format(node.value, node.last_seen))
+                  #print(node.ID)
+                  #print(node.type)
+                  #print(node.value)
+                  #print(node.last_seen)            
             
 
 class Node:
@@ -45,9 +57,6 @@ class Node:
                  
 
 
-nodes = [] #create an empty list where all node objects are stored
-#nodes.append( Node ("1","thermo","22","1"))
-#nodes.append( Node ("1","lala","22","1"))
 controller = Controller() #create a Controller object
 client_id = create_ID() #create a random client ID
 client = mqtt.Client(client_id) #create a MQTT client object
@@ -66,14 +75,11 @@ print("MQTTS started")
 
 
 while True: #loop forever
-  time.sleep(1) #communication sleeps to save battery power
-  client.subscribe("home/temp")
-  client.on_message = on_message
-  client.loop_start()
-  
-  
-'''
-
-while True:
-      print(create_ID())
-      '''
+      delay_time = 1 #in sec used to simulate a real IoT system
+      time.sleep(delay_time) #device sleeps to simulate a real IoT system
+      for node in nodes:
+            node.last_seen = node.last_seen + delay_time #increment timer
+      client.subscribe("home/temp")
+      client.on_message = on_message
+      controller.render_gui()
+      client.loop_start()
