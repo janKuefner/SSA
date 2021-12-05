@@ -7,23 +7,48 @@ def create_ID():
       return("cont"+str(random.randrange(1001,9999)))
 
 def on_message(client, userdata, msg):
-      print(msg.payload.decode())
+      '''this callback function is triggered, when a message is received. It 
+      disects the payload as per specification (see readme file). It checks if
+      the information was received from a new node, if so it creates another 
+      node object to store the values. Finally this method stores the 
+      information of the payload in the correct node object
+      '''
+      recevied_string = (msg.payload.decode()) #store received payload
+      type = (msg.topic[5:9]) #get the type from MQTT topic
+      ID=(recevied_string[4:8]) #disect the payload into ID
+      command=(recevied_string[8:11]) #disect the payload into command
+      value=(recevied_string[16:19]) #actuator / sensor value
+      print(recevied_string)
+      print(type)
+      print(ID)
+      print(command)
+      print(value) 
+      print("----------")
       
 
 class Controller:
-      def __init__(self, node_IDs):
-            '''node_IDs is an array that stores all IDs of the nodes'''
-            self.node_IDs = node_IDs
+      def __init__(self):
+            '''this object doesn`t have any attributes'''
             
-      def update_temperature_from_nodes(self):
-            '''this methods updates temperatures from nodes and prints them'''
-            print("Yolo")
-            client.subscribe("home/temp")
-            client.on_message = on_message
-            client.loop_start()
+      def render_gui(self):
+            '''this methods renders a GUI of a controller'''
+            print("render GUI in here")
+            #os.system('printf "\033c"') #clears screen
+            
+
+class Node:
+      def __init__(self, ID, type, value, last_seen):
+            self.ID = ID 
+            self.type = type #e.g. thermometer or lamp
+            self.value = value #e.g. degree Celsius or lamp on
+            self.last_seen = last_seen #time elapsed since last transmission 
                  
 
-controller = Controller([]) #create a Controller object
+
+nodes = [] #create an empty list where all node objects are stored
+#nodes.append( Node ("1","thermo","22","1"))
+#nodes.append( Node ("1","lala","22","1"))
+controller = Controller() #create a Controller object
 client_id = create_ID() #create a random client ID
 client = mqtt.Client(client_id) #create a MQTT client object
 
@@ -42,10 +67,11 @@ print("MQTTS started")
 
 while True: #loop forever
   time.sleep(1) #communication sleeps to save battery power
-  controller.update_temperature_from_nodes()
-  print('yolo')
-  #os.system('clear') 
-  os.system('printf "\033c"') #clears screen
+  client.subscribe("home/temp")
+  client.on_message = on_message
+  client.loop_start()
+  
+  
 '''
 
 while True:

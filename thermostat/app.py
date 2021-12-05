@@ -32,7 +32,7 @@ class Thermometer:
           self.current_temperature = self.set_temperature +1
         else:
           self.current_temperature = self.set_temperature
-        self.payload = client_id + "actual--" + str(self.set_temperature)
+        self.payload = client_id + "pub-----" + str(self.set_temperature)
             
       
 client_id = create_ID() #create a random client ID
