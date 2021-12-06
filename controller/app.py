@@ -28,7 +28,7 @@ def on_message(client, userdata, msg):
       '''
       string_rcvd = (msg.payload.decode()) #store received payload
       type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
-      ID_rcvd=(string_rcvd[4:8]) #disect the payload into ID
+      ID_rcvd=(string_rcvd[0:8]) #disect the payload into ID
       command_rcvd=(string_rcvd[8:11]) #disect the payload into command
       value_rcvd=(string_rcvd[16:19]) #actuator / sensor value
       '''add received string to the correct node - if node new create a new 
@@ -39,9 +39,12 @@ def on_message(client, userdata, msg):
                   node.last_seen = 0 #set time when last seen to zero
                   break
       else: #if not in list create a new object node an append it to nodes
-            new_node = Node(ID_rcvd, type_rcvd, value_rcvd, 0, 0)
-            nodes.append(new_node)     
-      
+            '''the node to be appended may not be this controller, since
+            this controller shall not be listed as node to controll via MQTTS by
+            this controller.'''
+            if (ID_rcvd != client_id): #only append when not this controller
+                  new_node = Node(ID_rcvd, type_rcvd, value_rcvd, 0, 0)
+                  nodes.append(new_node)     
 
 class Controller:
       def __init__(self):
@@ -58,10 +61,16 @@ class Controller:
             '''this methods renders a GUI of a controller, that shows the values
             of all connected nodes'''
             os.system('printf "\033c"') #clears screen
+            print ("This node has the following ID: ", client_id) 
+            print ()
+            print ("Here are the connected nodes:")
             for node in nodes:
                   print("--------------------------------")
-                  print("Heating No. {0} set to {1} °C".format(node.ID, node.set_value))
-                  print("{0} °C - measured {1} sec ago".format(node.value, node.last_seen))
+                  print("Heating No.:" ,node.ID)
+                  print("Current temperature:", node.value) 
+                  print("Current set value:",node.set_value)
+                  print("Temperature laste measured:", node.last_seen)
+            print("--------------------------------")
             print ("")
             print ("Press Enter to set actuator (e.g. thermostat) values")
       
@@ -77,14 +86,14 @@ class Controller:
                   print ("Node type: ", node.type)
                   print ("Current set value: ", node.set_value)
                   n = n + 1
+            print("--------------------------------")
             print()
             '''In the following a user can pick a node. The inpout is validated 
             so non existing nodes or strings as input cannot be provided'''
-            print ("Press 0 to", (len(nodes)-1) ,"& hit ENTER to change set value")
+            print ("Press 0 to", (len(nodes)-1) ,"& hit ENTER to select a node, where you want to change set value")
             while True:
                   print()
                   try:
-                        
                         sensor_chosen = int(input ())
                         if 0 <= sensor_chosen and sensor_chosen < len(nodes):
                               break
@@ -96,6 +105,15 @@ class Controller:
             new_set_value = input ()
             #add input validation here and only break loop with valid entry
             nodes[sensor_chosen].set_value = new_set_value
+            
+      def transmit_new_set_values(self):
+            '''this method is changing set values at all nodes by publishing 
+            payloads as per specification of transmission within the readme file
+            ''' 
+            for node in nodes:
+                  payload = client_id + "set-----" + str(node.set_value) + str(node.ID)
+                  #payload = "cont7837set-----99temp4839"
+                  client.publish("home/temp", payload) #publish payload
             
 
 class Node:
@@ -110,12 +128,12 @@ class Node:
             self.type = type #e.g. thermometer or lamp
             self.value = value #e.g. degree Celsius or lamp on
             self.last_seen = last_seen #time elapsed since last transmission
-            self.set_value = set_value #e.g. 20°C or light on 
+            self.set_value = set_value #e.g. 20 degree Celsius or light on 
                  
 
 '''create some objects necessary for the programm to run'''
-controller = Controller() #create a Controller object
 client_id = create_ID() #create a random client ID
+controller = Controller() #create a Controller object
 client = mqtt.Client(client_id) #create a MQTT client object
 
 
@@ -151,4 +169,5 @@ while True: #outer loop, which loops forever
                   break
       '''in the outer loop the user sees a different GUI once that GUI method
       completes. The programm jumps back to the inner loop'''
-      controller.render_gui_that_lets_the_user_change_set_values()                 
+      controller.render_gui_that_lets_the_user_change_set_values() 
+      controller.transmit_new_set_values()            
