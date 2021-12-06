@@ -25,15 +25,8 @@ def on_message(client, userdata, msg):
       command_rcvd=(string_rcvd[8:11]) #disect the payload into command
       value_rcvd=(string_rcvd[16:18]) #actuator / sensor value
       recipient_ID_rcvd=(string_rcvd[18:26]) #recipient of this message
-      #if command_rcvd == "set" and recipient_ID_rcvd == client_id:
-      if command_rcvd == "set":
-        print()
-        print("complete string:",string_rcvd)
-        print("from:", ID_rcvd)
-        print("to:", recipient_ID_rcvd)
-        print("command:", command_rcvd)
-        print("value:", value_rcvd)
-        print("-------")
+      if command_rcvd == "set" and recipient_ID_rcvd == client_id:
+            thermometer.set_temperature = int(value_rcvd)
             
         
 class Thermometer:
