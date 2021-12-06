@@ -1,11 +1,21 @@
-import paho.mqtt.client as mqtt
-import time
+import paho.mqtt.client as mqtt #used for MQTT protocol
+import time #used to simulate IoT delays
 import random #used to create ID
 import os #used for clear screen
+import sys, select #used to break out the while loop
+
+
+delay_time = 1 #in sec used to simulate a real IoT system
 
 nodes = [] #create an empty list where all node objects are stored
 
 def create_ID():
+      '''this function is used to give the node a random ID at startup of the 
+      node. This is to simulate that a node has a hardware bound ID. The 
+      function is random and not one set ID is used, so this code can be run in 
+      Docker multiple times to simulate as many noddes. This is not as a real 
+      IoT system would be designed. It is however good for the simulation of a 
+      manifold IoT system in Docker'''
       return("cont"+str(random.randrange(1001,9999)))
 
 def on_message(client, userdata, msg):
@@ -33,22 +43,42 @@ def on_message(client, userdata, msg):
 
 class Controller:
       def __init__(self):
-            '''this object doesn`t have any attributes'''
+            '''this object doesn`t have any attributes. But some methods :)'''
             
-      def render_gui(self):
-            '''this methods renders a GUI of a controller'''
+      def update_idle_timer_of_nodes(self):
+            '''this methods increments the idle timer of a node. If a message is
+            received from a node. The timer is set to 0. This setting to 0 is 
+            done in the on_message callback function'''
+            for node in nodes:
+                  node.last_seen = node.last_seen + delay_time #increment timer
+            
+      def render_gui_that_shows_values_of_node(self):
+            '''this methods renders a GUI of a controller, that shows the values
+            of all connected nodes'''
             os.system('printf "\033c"') #clears screen
             for node in nodes:
                   print("--------------------------------")
                   print("Heating No. {0} set to XYZ °C".format(node.ID))
                   print("{0} °C - measured {1} sec ago".format(node.value, node.last_seen))
-                  #print(node.ID)
-                  #print(node.type)
-                  #print(node.value)
-                  #print(node.last_seen)            
+            print ("")
+            print ("Press Enter to set actuator (e.g. thermostat) values")
+      
+      def render_gui_that_lets_the_user_change_set_values(self):
+            '''this methods renders a GUI of a controller, where the user can 
+            set values e.g. set heating 3432 to 22 degree Celsius'''
+            print("yolo")
+            print()
+            x = input ("enter value: ")  
+            print(x) 
             
 
 class Node:
+      '''in this Node class all information recevived from the broker is stored
+      to the respective node. The node objects are stored in a nodes list. At 
+      the beginning of the programm this list is empty. When receiving info
+      from the broker on a node not yet within the list the list is updated. 
+      The update of the list is done in the Controller Class by a controller 
+      object that is created.'''
       def __init__(self, ID, type, value, last_seen):
             self.ID = ID 
             self.type = type #e.g. thermometer or lamp
@@ -56,7 +86,7 @@ class Node:
             self.last_seen = last_seen #time elapsed since last transmission 
                  
 
-
+'''create some objects necessary for the programm to run'''
 controller = Controller() #create a Controller object
 client_id = create_ID() #create a random client ID
 client = mqtt.Client(client_id) #create a MQTT client object
@@ -69,17 +99,29 @@ same network as the broker'''
 any_var = input("integrate this node to the Docker network & then press Enter")
 
 
+'''the following connects you to the broker and subsrcibes to relevant topics 
+of the broker'''
 client.connect("nebula_mosquitto_container",1883,60) #connect to broker
+client.subscribe("home/temp")
 print("MQTTS started")
 
 
-
-while True: #loop forever
-      delay_time = 1 #in sec used to simulate a real IoT system
-      time.sleep(delay_time) #device sleeps to simulate a real IoT system
-      for node in nodes:
-            node.last_seen = node.last_seen + delay_time #increment timer
-      client.subscribe("home/temp")
-      client.on_message = on_message
-      controller.render_gui()
-      client.loop_start()
+'''The follow double loop (inner loop and outer loop) controls the programm flow
+of the controller. The inner loop, that updates idle timers of nodes, renders a 
+GUI that shows current values of node connected, checks for transmitted messages
+is looping till an interrupt. When the interrupt is triggered a different GUI
+is displayed where the user can change settings of devices'''
+while True: #outer loop, which loops forever            
+      while True: #inner loop, which loops till Enter is pressed
+            time.sleep(delay_time) #device sleeps to simulate a real IoT system
+            controller.update_idle_timer_of_nodes() #update idle timers
+            client.on_message = on_message #check for message from broker
+            controller.render_gui_that_shows_values_of_node() #render GUI
+            client.loop_start() #necessary for MQTT
+            '''the following stops the inner loop, if enter is pressed'''
+            if sys.stdin in select.select([sys.stdin], [], [], 0)[0]:
+                  line = input()
+                  break
+      '''in the outer loop the user sees a different GUI once that GUI method
+      completes. The programm jumps back to the inner loop'''
+      controller.render_gui_that_lets_the_user_change_set_values()                 

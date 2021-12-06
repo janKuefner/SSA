@@ -27,11 +27,11 @@ class Thermometer:
         
       def create_payload(self):
         '''the following if statement is to simulate that the measured 
-        temperature is sometimes not as the set temperature.'''
-        if random.randrange(0,5) == 3:
-          self.current_temperature = self.set_temperature +1
-        else:
-          self.current_temperature = self.set_temperature
+        temperature is sometimes not as the set temperature. The temperature 
+        fluctuation is not real, but ideal to check, showcase and verify a IoT 
+        home system simulated in Docker. The payload is assembled as per
+        specification within the readme file'''
+        self.current_temperature = self.set_temperature + random.randrange(-3,3)
         self.payload = client_id + "pub-----" + str(self.set_temperature)
             
       
@@ -51,10 +51,8 @@ client.connect("nebula_mosquitto_container",1883,60) #connect to broker
 
 
 while True: #loop forever
-  '''communication sleeps to save battery power. A random value for sleeping 
-  was chosen to simulate an unreliable node'''
-  time.sleep(random.randrange(1,4)) 
+  time.sleep(5) #used to simulate a IoT device, since sleeping safes battery :)
   thermometer.create_payload() #create payload
   client.publish("home/temp", thermometer.payload) #publish payload
-  thermometer.render_gui() #render the gui
+  thermometer.render_gui() #render GUI, likely tiny LCD, if it was a real device
   
