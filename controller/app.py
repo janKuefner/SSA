@@ -30,7 +30,8 @@ def on_message(client, userdata, msg):
       type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
       ID_rcvd=(string_rcvd[0:8]) #disect the payload into ID
       command_rcvd=(string_rcvd[8:11]) #disect the payload into command
-      value_rcvd=(string_rcvd[16:19]) #actuator / sensor value
+      value_rcvd=(string_rcvd[16:18]) #actuator / sensor value
+      recipient_ID_rcvd=(string_rcvd[18:26]) #recipient of this message
       '''add received string to the correct node - if node new create a new 
       entry within the nodes list'''
       for node in nodes:
@@ -101,12 +102,24 @@ class Controller:
                               print ("Please provide a number between 0 and", (len(nodes)-1))
                   except:
                         print("Please provide a number")
-            print ("Enter new set value")  
-            new_set_value = input ()
-            #add input validation here and only break loop with valid entry
-            nodes[sensor_chosen].set_value = new_set_value
+            print ("Enter new set value")
+            while True:
+                  print()
+                  try:
+                        new_set_value = int(input ())
+                        if 0 <= new_set_value < 100:
+                              break
+                        else: 
+                              print ("Please provide a number between 0 and 99")
+                  except:
+                        print("Please provide a number")  
+            if 0 <= new_set_value < 10:
+                  new_set_value_two_characters = "0" + str(new_set_value)
+            else:
+                  new_set_value_two_characters = str(new_set_value)
+            nodes[sensor_chosen].set_value = new_set_value_two_characters
             
-      def transmit_new_set_values(self):
+      def transmit_set_values(self):
             '''this method is changing set values at all nodes by publishing 
             payloads as per specification of transmission within the readme file
             ''' 
@@ -170,4 +183,4 @@ while True: #outer loop, which loops forever
       '''in the outer loop the user sees a different GUI once that GUI method
       completes. The programm jumps back to the inner loop'''
       controller.render_gui_that_lets_the_user_change_set_values() 
-      controller.transmit_new_set_values()            
+      controller.transmit_set_values()            

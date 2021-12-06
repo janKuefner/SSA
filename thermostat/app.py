@@ -23,14 +23,17 @@ def on_message(client, userdata, msg):
       type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
       ID_rcvd=(string_rcvd[0:8]) #disect the payload into ID
       command_rcvd=(string_rcvd[8:11]) #disect the payload into command
-      value_rcvd=(string_rcvd[16:19]) #actuator / sensor value
-      recipient_ID_rcvd=(string_rcvd[19:27]) #recipient of this message
+      value_rcvd=(string_rcvd[16:18]) #actuator / sensor value
+      recipient_ID_rcvd=(string_rcvd[18:26]) #recipient of this message
       #if command_rcvd == "set" and recipient_ID_rcvd == client_id:
       if command_rcvd == "set":
-        print(string_rcvd)
-        print(recipient_ID_rcvd)
-        print(command_rcvd)
-        print(value_rcvd)
+        print()
+        print("complete string:",string_rcvd)
+        print("from:", ID_rcvd)
+        print("to:", recipient_ID_rcvd)
+        print("command:", command_rcvd)
+        print("value:", value_rcvd)
+        print("-------")
             
         
 class Thermometer:
@@ -49,7 +52,6 @@ class Thermometer:
         '''print essential data from a thermometer'''
         print ("This node has the following ID: ", client_id) 
         print ()
-        print("Client ID: ", client_id)
         print("Set temperature:", self.set_temperature )
         print("Current temperature: ", self.current_temperature)
         
@@ -67,7 +69,7 @@ class Thermometer:
       
 client_id = create_ID() #create a random client ID
 client = mqtt.Client() #create a MQTT client object
-thermometer = Thermometer (20, 13, "lalala") #create a thermometer object
+thermometer = Thermometer (0, 13, "lalala") #create a thermometer object
 
 
 '''the following line of code is used to delay this programm / the node till 
