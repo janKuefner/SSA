@@ -6,8 +6,8 @@ import sys, select #used to break out the while loop
 
 
 delay_time = 1 #in sec used to simulate a real IoT system
-
 nodes = [] #create an empty list where all node objects are stored
+
 
 def create_ID():
       '''this function is used to give the node a random ID at startup of the 
@@ -17,6 +17,7 @@ def create_ID():
       IoT system would be designed. It is however good for the simulation of a 
       manifold IoT system in Docker'''
       return("cont"+str(random.randrange(1001,9999)))
+
 
 def on_message(client, userdata, msg):
       '''this callback function is triggered, when a message is received. It 
@@ -30,14 +31,15 @@ def on_message(client, userdata, msg):
       ID_rcvd=(string_rcvd[4:8]) #disect the payload into ID
       command_rcvd=(string_rcvd[8:11]) #disect the payload into command
       value_rcvd=(string_rcvd[16:19]) #actuator / sensor value
-      '''check if node is known already'''
+      '''add received string to the correct node - if node new create a new 
+      entry within the nodes list'''
       for node in nodes:
             if (node.ID == ID_rcvd): #check if a node object exists with the ID
                   node.value = value_rcvd #if so update value send
                   node.last_seen = 0 #set time when last seen to zero
                   break
       else: #if not in list create a new object node an append it to nodes
-            new_node = Node(ID_rcvd, type_rcvd, value_rcvd, 0)
+            new_node = Node(ID_rcvd, type_rcvd, value_rcvd, 0, 0)
             nodes.append(new_node)     
       
 
@@ -58,7 +60,7 @@ class Controller:
             os.system('printf "\033c"') #clears screen
             for node in nodes:
                   print("--------------------------------")
-                  print("Heating No. {0} set to XYZ °C".format(node.ID))
+                  print("Heating No. {0} set to {1} °C".format(node.ID, node.set_value))
                   print("{0} °C - measured {1} sec ago".format(node.value, node.last_seen))
             print ("")
             print ("Press Enter to set actuator (e.g. thermostat) values")
@@ -66,10 +68,34 @@ class Controller:
       def render_gui_that_lets_the_user_change_set_values(self):
             '''this methods renders a GUI of a controller, where the user can 
             set values e.g. set heating 3432 to 22 degree Celsius'''
-            print("yolo")
+            os.system('printf "\033c"') #clears screen
+            n = 0
+            for node in nodes:
+                  print("--------------------------------")
+                  print ("-", n ,"-")
+                  print ("Node ID: ", node.ID)
+                  print ("Node type: ", node.type)
+                  print ("Current set value: ", node.set_value)
+                  n = n + 1
             print()
-            x = input ("enter value: ")  
-            print(x) 
+            '''In the following a user can pick a node. The inpout is validated 
+            so non existing nodes or strings as input cannot be provided'''
+            print ("Press 0 to", (len(nodes)-1) ,"& hit ENTER to change set value")
+            while True:
+                  print()
+                  try:
+                        
+                        sensor_chosen = int(input ())
+                        if 0 <= sensor_chosen and sensor_chosen < len(nodes):
+                              break
+                        else: 
+                              print ("Please provide a number between 0 and", (len(nodes)-1))
+                  except:
+                        print("Please provide a number")
+            print ("Enter new set value")  
+            new_set_value = input ()
+            #add input validation here and only break loop with valid entry
+            nodes[sensor_chosen].set_value = new_set_value
             
 
 class Node:
@@ -79,11 +105,12 @@ class Node:
       from the broker on a node not yet within the list the list is updated. 
       The update of the list is done in the Controller Class by a controller 
       object that is created.'''
-      def __init__(self, ID, type, value, last_seen):
+      def __init__(self, ID, type, value, last_seen, set_value):
             self.ID = ID 
             self.type = type #e.g. thermometer or lamp
             self.value = value #e.g. degree Celsius or lamp on
-            self.last_seen = last_seen #time elapsed since last transmission 
+            self.last_seen = last_seen #time elapsed since last transmission
+            self.set_value = set_value #e.g. 20°C or light on 
                  
 
 '''create some objects necessary for the programm to run'''

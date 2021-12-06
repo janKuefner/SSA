@@ -31,8 +31,9 @@ class Thermometer:
         fluctuation is not real, but ideal to check, showcase and verify a IoT 
         home system simulated in Docker. The payload is assembled as per
         specification within the readme file'''
-        self.current_temperature = self.set_temperature + random.randrange(-3,3)
-        self.payload = client_id + "pub-----" + str(self.set_temperature)
+        random_offset = random.randrange(-3,3)
+        self.current_temperature = self.set_temperature + random_offset
+        self.payload = client_id + "pub-----" + str(self.current_temperature)
             
       
 client_id = create_ID() #create a random client ID
