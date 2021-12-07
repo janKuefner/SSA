@@ -1,7 +1,6 @@
 import paho.mqtt.client as mqtt #used for MQTT protocol
 import time #used to simulate IoT delays
-import os #used for clear screen
-import random #used to create ID
+
 
 
     
