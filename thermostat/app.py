@@ -73,11 +73,11 @@ any_var = input("integrate this node to the Docker network & then press Enter")
 
 
 client.connect("nebula_mosquitto_container",1883,60) #connect to broker
-client.subscribe("home/temp")
 print("MQTTS started")
 
 
 while True: #loop forever
+  client.subscribe("home/temp", qos=1) #subscribe with QoS of 1
   time.sleep(5) #used to simulate a IoT device, since sleeping safes battery :)
   thermometer.create_payload() #create payload
   client.publish("home/temp", thermometer.payload) #publish payload

@@ -173,7 +173,6 @@ any_var = input("integrate this node to the Docker network & then press Enter")
 '''the following connects you to the broker and subsrcibes to relevant topics 
 of the broker'''
 client.connect("nebula_mosquitto_container",1883,60) #connect to broker
-client.subscribe("home/temp")
 print("MQTTS started")
 
 
@@ -184,6 +183,7 @@ is looping till an interrupt. When the interrupt is triggered a different GUI
 is displayed where the user can change settings of devices'''
 while True: #outer loop, which loops forever            
       while True: #inner loop, which loops till Enter is pressed
+            client.subscribe("home/temp")
             time.sleep(delay_time) #device sleeps to simulate a real IoT system
             controller.update_idle_timer_of_nodes() #update idle timers
             '''the following function is a callback function that gets activated
