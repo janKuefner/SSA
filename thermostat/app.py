@@ -61,7 +61,7 @@ class Thermometer:
             
       
 client_id = create_ID() #create a random client ID
-client = mqtt.Client() #create a MQTT client object
+client = mqtt.Client(client_id) #create a MQTT client object
 thermometer = Thermometer (0, 13, "lalala") #create a thermometer object
 
 

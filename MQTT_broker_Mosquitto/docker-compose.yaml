@@ -9,7 +9,7 @@ services:
       - ./log/mqtt:/mqtt/log
     ports:
       - '1883:1883'
-      - '6666:6666'
+      - '8883:8883'
     networks:
       - default
     restart: unless-stopped
