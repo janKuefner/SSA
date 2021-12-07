@@ -45,7 +45,20 @@ def on_message(client, userdata, msg):
             this controller.'''
             if (ID_rcvd != client_id): #only append when not this controller
                   new_node = Node(ID_rcvd, type_rcvd, value_rcvd, 0, 0)
-                  nodes.append(new_node)     
+                  nodes.append(new_node)  
+                  
+                  
+def on_publish(client,mid,result):
+      '''this callback function is started when the broker returns an ACK 
+      message. ACK messages are only send by broker with QoS 1 or QoS 2 (for 
+      more information see readme file)
+      a result larger 0 indicates that the message was sent. Note result is 
+      incremented by the broker'''             
+      if result > 0:
+            print()
+            print("Message successfully sent to broker")
+      pass   
+
 
 class Controller:
       def __init__(self):
@@ -70,7 +83,7 @@ class Controller:
                   print("Heating No.:" ,node.ID)
                   print("Current temperature:", node.value) 
                   print("Current set value:",node.set_value)
-                  print("Temperature laste measured:", node.last_seen)
+                  print("Temperature last measured:", node.last_seen)
             print("--------------------------------")
             print ("")
             print ("Press Enter to set actuator (e.g. thermostat) values")
@@ -126,7 +139,7 @@ class Controller:
             for node in nodes:
                   payload = client_id + "set-----" + str(node.set_value) + str(node.ID)
                   #payload = "cont7837set-----99temp4839"
-                  client.publish("home/temp", payload) #publish payload
+                  client.publish("home/temp", payload, qos=1) #publish payload
             
 
 class Node:
@@ -173,7 +186,9 @@ while True: #outer loop, which loops forever
       while True: #inner loop, which loops till Enter is pressed
             time.sleep(delay_time) #device sleeps to simulate a real IoT system
             controller.update_idle_timer_of_nodes() #update idle timers
-            client.on_message = on_message #check for message from broker
+            '''the following function is a callback function that gets activated
+            per every message available at the broker for this node'''
+            client.on_message = on_message 
             controller.render_gui_that_shows_values_of_node() #render GUI
             client.loop_start() #necessary for MQTT
             '''the following stops the inner loop, if enter is pressed'''
@@ -183,4 +198,14 @@ while True: #outer loop, which loops forever
       '''in the outer loop the user sees a different GUI once that GUI method
       completes. The programm jumps back to the inner loop'''
       controller.render_gui_that_lets_the_user_change_set_values() 
-      controller.transmit_set_values()            
+      controller.transmit_set_values()
+      '''the following function is a callback function that gets activated per 
+      every ACK message from the broker for this node. Note: ACK messages are 
+      only returned by the broker in QoS 1 or QoS 2 - see readme file for more 
+      information'''
+      client.on_publish = on_publish
+      '''the following delay is to show if ACK was received in this GUI before 
+      jumping to the other GUI again. A jump would rather confuse the user, so 
+      feedback is therfore provided in the settings GUI driven by the outer 
+      loop'''
+      time.sleep(3) 
