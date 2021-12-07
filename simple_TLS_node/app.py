@@ -1,11 +1,16 @@
 import paho.mqtt.client as mqtt #used for MQTT protocol
 import time #used to simulate IoT delays
+import ssl
 
-
+print("simple TLS app")
 
     
 def on_message(client, userdata, msg):
       print(msg.payload.decode()) 
+      
+      
+def on_log(client, userdata, level, buf):
+      print("log: ",buf)
             
  
 client = mqtt.Client() #create a MQTT client object
@@ -14,15 +19,26 @@ client = mqtt.Client() #create a MQTT client object
 any_var = input("integrate this node to the Docker network & then press Enter")
 
 
-client.connect("nebula_mosquitto_container",1883,60) #connect to broker
-print("MQTTS started")
 
 
-while True: 
-  client.subscribe("home/temp") 
-  time.sleep(5) #used to simulate a IoT device, since sleeping safes battery :)
-  client.publish("home/temp", "yolo") #publish payload
-  print("published")
-  client.on_message = on_message #check for message from broker
-  client.loop_start() #necessary for MQTT
+
+
+
+
+'''callback functions'''
+client.on_message = on_message #check for message from broker
+client.on_log=on_log
+'''TLS parameters'''
+#client.tls_set("/certs/broker.crt", tls_version=ssl.PROTOCOL_TLSv1_2)
+client.tls_set("/certs/broker.crt")
+client.tls_insecure_set(True)
+'''TLS connect, subscribe'''
+client.connect("nebula_mosquitto_container",8883,60) #connect to broker 
+client.subscribe("home/temp")
+print("MQTTS started") 
+'''publish'''
+client.publish("home/temp", "yolo") #publish payload
+'''MQTT LOOP'''
+client.loop_start() #loops MQTT commands
+time.sleep(5) #used to simulate a IoT device, since sleeping safes battery :)
   
