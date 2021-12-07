@@ -4,6 +4,7 @@ services:
   mosquitto:
     container_name: nebula_mosquitto_container
     image: eclipse-mosquitto:2.0.14
+    hostname: nebula_broker
     volumes:
       - ./config:/mosquitto/config/ #this mounts the config folder with the config file to the Docker image
       - ./certs:/mosquitto/certs/ #this mounte the cert folder with certs to the Docker image
