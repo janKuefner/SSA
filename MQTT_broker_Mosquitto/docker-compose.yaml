@@ -3,7 +3,8 @@ version: '3.5'
 services:
   mosquitto:
     container_name: nebula_mosquitto_container
-    image: eclipse-mosquitto:2.0.14
+    #image: eclipse-mosquitto:2.0.14
+    image: eclipse-mosquitto
     hostname: nebula_mosquitto_container
     volumes:
       - ./config:/mosquitto/config/ #this mounts the config folder with the config file to the Docker image
