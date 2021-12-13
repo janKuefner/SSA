@@ -58,11 +58,6 @@ def on_publish(client,mid,result):
             print()
             print("Message successfully sent to broker")
 
-'''
-class Input_exception(Exception):
-    def __init__():
-        super().__init__()
-        '''
 
 class Controller:
       def __init__(self):
