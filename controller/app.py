@@ -29,9 +29,9 @@ def on_message(client, userdata, msg):
       string_rcvd = (msg.payload.decode()) #store received payload
       type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
       ID_rcvd=(string_rcvd[0:8]) #disect the payload into ID
-      command_rcvd=(string_rcvd[8:11]) #disect the payload into command
+      #command_rcvd=(string_rcvd[8:11]) #disect the payload into command
       value_rcvd=(string_rcvd[16:18]) #actuator / sensor value
-      recipient_ID_rcvd=(string_rcvd[18:26]) #recipient of this message
+      #recipient_ID_rcvd=(string_rcvd[18:26]) #recipient of this message
       '''add received string to the correct node - if node new create a new 
       entry within the nodes list'''
       for node in nodes:
@@ -57,8 +57,12 @@ def on_publish(client,mid,result):
       if result > 0:
             print()
             print("Message successfully sent to broker")
-      pass   
 
+'''
+class Input_exception(Exception):
+    def __init__():
+        super().__init__()
+        '''
 
 class Controller:
       def __init__(self):
@@ -113,18 +117,18 @@ class Controller:
                               break
                         else: 
                               print ("Please provide a number between 0 and", (len(nodes)-1))
-                  except:
+                  except ValueError:
                         print("Please provide a number")
             print ("Enter new set value")
             while True:
                   print()
                   try:
                         new_set_value = int(input ())
-                        if 0 <= new_set_value < 100:
+                        if 0 <= new_set_value < 40:
                               break
                         else: 
-                              print ("Please provide a number between 0 and 99")
-                  except:
+                              print ("Please provide a number between 0 and 39")
+                  except ValueError:
                         print("Please provide a number")  
             if 0 <= new_set_value < 10:
                   new_set_value_two_characters = "0" + str(new_set_value)

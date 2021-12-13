@@ -20,8 +20,8 @@ def on_message(client, userdata, msg):
       this node. No action will happen (e.g. set temperature will remain as is)
       '''
       string_rcvd = (msg.payload.decode()) #store received payload
-      type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
-      ID_rcvd=(string_rcvd[0:8]) #disect the payload into ID
+      #type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
+      #ID_rcvd=(string_rcvd[0:8]) #disect the payload into ID
       command_rcvd=(string_rcvd[8:11]) #disect the payload into command
       value_rcvd=(string_rcvd[16:18]) #actuator / sensor value
       recipient_ID_rcvd=(string_rcvd[18:26]) #recipient of this message
