@@ -27,7 +27,7 @@ def on_message(client, userdata, msg):
       information of the payload in the correct node object
       '''
       string_rcvd = (msg.payload.decode()) #store received payload
-      type_rcvd = (msg.topic[5:9]) #get the type from MQTT topic
+      type_rcvd = (string_rcvd[0:4]) #get the type from MQTT payload
       ID_rcvd=(string_rcvd[0:8]) #disect the payload into ID
       #command_rcvd=(string_rcvd[8:11]) #disect the payload into command
       value_rcvd=(string_rcvd[16:18]) #actuator / sensor value
@@ -78,11 +78,17 @@ class Controller:
             print ()
             print ("Here are the connected nodes:")
             for node in nodes:
-                  print("--------------------------------")
-                  print("Heating No.:" ,node.ID)
-                  print("Current temperature:", node.value) 
-                  print("Current set value:",node.set_value)
-                  print("Temperature last measured:", node.last_seen)
+                  if node.type == "lamp":
+                        print("--------------------------------")
+                        print("Lamp No.:" ,node.ID)
+                        print("Current set value:",node.set_value)
+                        print("Node last seen:", node.last_seen)
+                  if node.type == "temp":
+                        print("--------------------------------")
+                        print("Heating No.:" ,node.ID)
+                        print("Current temperature:", node.value) 
+                        print("Current set value:",node.set_value)
+                        print("Node last seen:", node.last_seen)
             print("--------------------------------")
             print ("")
             print ("Press Enter to set actuator (e.g. thermostat) values")
@@ -114,15 +120,24 @@ class Controller:
                               print ("Please provide a number between 0 and", (len(nodes)-1))
                   except ValueError:
                         print("Please provide a number")
-            print ("Enter new set value")
+            if nodes[sensor_chosen].type == "temp":
+                  print ("Please provide a number between 0 and 39")
+            if nodes[sensor_chosen].type == "lamp":
+                  print ("Please type 0 [OFF] or 1 [ON]")
             while True:
                   print()
                   try:
                         new_set_value = int(input ())
-                        if 0 <= new_set_value < 40:
-                              break
-                        else: 
-                              print ("Please provide a number between 0 and 39")
+                        if nodes[sensor_chosen].type == "temp":
+                              if 0 <= new_set_value < 40:
+                                    break
+                              else:  
+                                    print ("Please provide a number between 0 and 39")
+                        if nodes[sensor_chosen].type == "lamp":
+                              if 0 <= new_set_value < 2:
+                                    break
+                              else: 
+                                    print ("Please type 0 [OFF] or 1 [ON]")
                   except ValueError:
                         print("Please provide a number")  
             if 0 <= new_set_value < 10:
