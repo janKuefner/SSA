@@ -30,10 +30,11 @@ def on_message(client, userdata, msg):
             
         
 class Lamp:
-      def __init__(self, status):
+      def __init__(self, status, payload):
         '''set_temperature stores the value given by the controller the  
         heating is set to'''
         self.status = status
+        self.payload = payload
 
         
       def render_gui(self):
@@ -44,14 +45,17 @@ class Lamp:
         '''print essential data from a thermometer'''
         print ("This node has the following ID: ", client_id) 
         print ()
-        print("Status:", lamp.status )
+        print("Status:", lamp.status)
         
+      
+      def create_payload(self):
+            self.payload = client_id + "pub-----" + str(self.status)
         
             
       
 client_id = create_ID() #create a random client ID
 client = mqtt.Client(client_id) #create a MQTT client object
-lamp = Lamp (0) #create a thermometer object
+lamp = Lamp (0, "") #create a thermometer object
 
 
 '''the following line of code is used to delay this programm / the node till 
@@ -70,5 +74,7 @@ while True: #loop forever
   time.sleep(0.5) #used to simulate a IoT device, since sleeping safes battery :)
   client.on_message = on_message #check for message from broker
   client.loop_start() #necessary for MQTT
+  lamp.create_payload()
+  client.publish("home/temp", lamp.payload)
   lamp.render_gui() #render GUI, likely tiny LCD, if it was a real device
   
