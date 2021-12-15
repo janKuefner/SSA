@@ -63,8 +63,9 @@ MQTT connection to the broker can only be successfull, if the node is in the
 same network as the broker'''
 any_var = input("integrate this node to the Docker network & then press Enter")
 
-
-client.connect("nebula_mosquitto_container", 1883, 60)  # connect to broker
+client.tls_set("/app/certs/ca.crt")
+client.tls_insecure_set(True)
+client.connect("mosquitto_container", 8883, 60)  # connect to broker
 print("MQTTS started")
 
 

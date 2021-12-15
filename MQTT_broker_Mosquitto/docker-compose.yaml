@@ -2,18 +2,17 @@ version: '3.5'
 
 services:
   mosquitto:
-    container_name: nebula_mosquitto_container
-    #image: eclipse-mosquitto:2.0.14
-    image: eclipse-mosquitto
-    hostname: nebula_mosquitto_container
+    container_name: mosquitto_container
+    image: eclipse-mosquitto:1.6.10
+    # hostname: nebula_mosquitto_container
     volumes:
       - ./config:/mosquitto/config/ #this mounts the config folder with the config file to the Docker image
       - ./certs:/mosquitto/certs/ #this mounte the cert folder with certs to the Docker image
     ports:
-      - '1883:1883' #port 1883 reachable from externally for troubleshooting from WIndoiws with mosquitto_sub.exe
-      - '8883:8883' #same as above, in TLS
+      # - '1883:1883' #port 1883 reachable from externally for troubleshooting from WIndoiws with mosquitto_sub.exe
+      - '8883:8883' # same as above, in TLS
     networks:
-      - default #a network is spun up, when starting mosquitto, where the nodes can connect to
+      - default # a network is spun up, when starting mosquitto, where the nodes can connect to
     restart: unless-stopped
 
 networks:

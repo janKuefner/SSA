@@ -6,7 +6,7 @@
 			"label": "docker-build",
 			"platform": "python",
 			"dockerBuild": {
-				"tag": "thermostat:latest",
+				"tag": "simpletlsnode:latest",
 				"dockerfile": "${workspaceFolder}/Dockerfile",
 				"context": "${workspaceFolder}",
 				"pull": true
@@ -23,4 +23,4 @@
 			}
 		}
 	]
-} 
+}
