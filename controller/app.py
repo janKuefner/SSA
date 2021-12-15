@@ -89,9 +89,9 @@ class Controller:
                 print("Current temperature:", node.value)
                 print("Current set value:", node.set_value)
                 print("Node last seen:", node.last_seen)
-            print("--------------------------------")
-            print("")
-            print("Press Enter to set actuator (e.g. thermostat) values")
+        print("--------------------------------")
+        print("")
+        print("Press Enter to set actuator (e.g. thermostat) values")
 
     def render_gui_that_lets_the_user_change_set_values(self):
         '''this methods renders a GUI of a controller, where the user can
@@ -122,31 +122,31 @@ class Controller:
                           (len(nodes)-1))
             except ValueError:
                 print("Please provide a number")
-            if nodes[sensor_chosen].type == "temp":
-                print("Please provide a number between 0 and 39")
-            if nodes[sensor_chosen].type == "lamp":
-                print("Please type 0 [OFF] or 1 [ON]")
-            while True:
-                print()
-                try:
-                    new_set_value = int(input())
-                    if nodes[sensor_chosen].type == "temp":
-                        if 0 <= new_set_value < 40:
-                            break
-                        else:
-                            print("Please provide a number between 0 and 39")
-                        if nodes[sensor_chosen].type == "lamp":
-                            if 0 <= new_set_value < 2:
-                                break
-                            else:
-                                print("Please type 0 [OFF] or 1 [ON]")
-                except ValueError:
-                    print("Please provide a number")
-            if 0 <= new_set_value < 10:
-                new_set_value_two_characters = "0" + str(new_set_value)
-            else:
-                new_set_value_two_characters = str(new_set_value)
-            nodes[sensor_chosen].set_value = new_set_value_two_characters
+        if nodes[sensor_chosen].type == "temp":
+            print("Please provide a number between 0 and 39")
+        if nodes[sensor_chosen].type == "lamp":
+            print("Please type 0 [OFF] or 1 [ON]")
+        while True:
+            print()
+            try:
+                new_set_value = int(input())
+                if nodes[sensor_chosen].type == "temp":
+                    if 0 <= new_set_value < 40:
+                        break
+                    else:
+                        print("Please provide a number between 0 and 39")
+                if nodes[sensor_chosen].type == "lamp":
+                    if 0 <= new_set_value < 2:
+                        break
+                    else:
+                        print("Please type 0 [OFF] or 1 [ON]")
+            except ValueError:
+                print("Please provide a number")
+        if 0 <= new_set_value < 10:
+            new_set_value_two_characters = "0" + str(new_set_value)
+        else:
+            new_set_value_two_characters = str(new_set_value)
+        nodes[sensor_chosen].set_value = new_set_value_two_characters
 
     def transmit_set_values(self):
         '''this method is changing set values at all nodes by publishing
@@ -189,7 +189,9 @@ any_var = input("integrate this node to the Docker network & then press Enter")
 
 '''the following connects you to the broker and subsrcibes to relevant topics
 of the broker'''
-client.connect("nebula_mosquitto_container", 1883, 60)  # connect to broker
+client.tls_set("/app/certs/ca.crt")
+client.tls_insecure_set(True)
+client.connect("mosquitto_container", 8883, 60)  # connect to broker
 print("MQTTS started")
 
 
