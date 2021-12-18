@@ -19,6 +19,10 @@ def create_ID():
     return("cont"+str(random.randrange(1001, 9999)))
 
 
+def on_connect(client, userdata, flags, rc):
+    print("Connected flags", str(flags), "result code", str(rc))
+
+
 def on_message(client, userdata, msg):
     '''this callback function is triggered, when a message is received. It
     disects the payload as per specification (see readme file). It checks if
@@ -191,6 +195,11 @@ any_var = input("integrate this node to the Docker network & then press Enter")
 of the broker'''
 client.tls_set("/app/certs/ca.crt")
 client.tls_insecure_set(True)
+client.username_pw_set(username="nebula", password="nebula1")
+print("Authenticating...")
+client.on_message = on_message
+client.on_connect = on_connect
+
 client.connect("mosquitto_container", 8883, 60)  # connect to broker
 print("MQTTS started")
 
