@@ -1,0 +1,15 @@
+# This affects clients without username.
+topic read $SYS/#
+
+# This only affects clients with usernames.
+user nebula
+topic readwrite #
+
+user jan
+topic home/temp
+
+user freya
+topic read home/temp
+
+# This affects all clients.
+pattern write $SYS/broker/connection/%c/state

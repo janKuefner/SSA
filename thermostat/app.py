@@ -5,20 +5,24 @@ import random  # used to create ID
 
 
 def create_ID():
-    '''this function is used to give the node a random ID at startup of the 
-    node. This is to simulate that a node has a hardware bound ID. The 
-    function is random and not one set ID is used, so this code can be run in 
-    Docker multiple times to simulate as many noddes. This is not as a real 
-    IoT system would be designed. It is however good for the simulation of a 
+    '''this function is used to give the node a random ID at startup of the
+    node. This is to simulate that a node has a hardware bound ID. The
+    function is random and not one set ID is used, so this code can be run in
+    Docker multiple times to simulate as many noddes. This is not as a real
+    IoT system would be designed. It is however good for the simulation of a
     manifold IoT system in Docker'''
-    return("temp"+str(random.randrange(1001,9999)))
+    return("temp"+str(random.randrange(1001, 9999)))
+
+
+def on_connect(client, userdata, flags, rc):
+    print("Connected flags", str(flags), "result code", str(rc))
 
 
 def on_message(client, userdata, msg):
-    '''this callback function is triggered, when a message is received. It 
-    disects the payload as per specification (see readme file). If there is a 
-    message for this node that calls for action (e.g. change set temeprature) 
-    this node will do so, if the message doesn`call for action or is not for 
+    '''this callback function is triggered, when a message is received.It
+    disects the payload as per specification (see readme file). If there is a
+    message for this node that calls for action (e.g. change set temeprature)
+    this node will do so, if the message doesn`call for action or is not for
     this node. No action will happen (e.g. set temperature will remain as is)
     '''
     string_rcvd = (msg.payload.decode())  # store received payload
@@ -33,7 +37,7 @@ def on_message(client, userdata, msg):
 
 class Thermometer:
     def __init__(self, set_temperature, current_temperature, payload):
-        '''set_temperature stores the value given by the controller the  
+        '''set_temperature stores the value given by the controller the
         heating is set to'''
         self.set_temperature = set_temperature
         self.current_temperature = current_temperature
@@ -51,7 +55,7 @@ class Thermometer:
         print("Current temperature: ", self.current_temperature)
 
     def create_payload(self):
-        '''the following if statement is to simulate that the measured 
+        '''the following if statement is to simulate that the measured
         temperature is sometimes not as the set temperature. The temperature
         fluctuation is not real, but ideal to check, showcase and verify a IoT
         home system simulated in Docker. The payload is assembled as per
@@ -74,8 +78,14 @@ any_var = input("integrate this node to the Docker network & then press Enter")
 
 client.tls_set("/app/certs/ca.crt")
 client.tls_insecure_set(True)
+
+client.username_pw_set(username="jan", password="nebula2")
+print("Authenticating...")
+
+client.on_connect = on_connect
+
 client.connect("mosquitto_container", 8883, 60)  # connect to broker
-print("MQTTS started")
+print("Success. MQTTS started")
 
 
 while True:  # loop forever
