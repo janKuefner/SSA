@@ -20,7 +20,16 @@ def create_ID():
 
 
 def on_connect(client, userdata, flags, rc):
-    '''provide feedback on the connection status'''
+    '''The broker acknowledgement will generate a callback (on_connect). To
+    make sure that connection attempt was successful a function to handle this
+    callback needs to be set up before creating the connection."client" is the
+    client instance for this callback, "userdata" is the private user data as
+    set in Client(), "flags" are response flags sent by the broker and "rc" is
+    the connection result which can indicate the following values: 0:
+    Connection successful 1: Connection refused - incorrect protocol version 2:
+    Connection     refused - invalid client identifier 3: Connection refused -
+    server unavailable 4: Connection refused - bad username or password 5:
+    Connection refused - not authorised 6-255: Currently unused.'''
     print("Connected flags", str(flags), "result code", str(rc))
 
 
@@ -49,6 +58,7 @@ def on_message(client, userdata, msg):
         this controller shall not be listed as node to controll via MQTTS by
         this controller.'''
         if (ID_rcvd != client_id):  # only append when not this controller
+            '''append not yet know to the list of nodes'''
             new_node = Node(ID_rcvd, type_rcvd, value_rcvd, 0, 0)
             nodes.append(new_node)
 
@@ -65,6 +75,9 @@ def on_publish(client, mid, result):
 
 
 class Controller:
+    '''this class is used to create a node object to code OOP in the main /
+    looping part of the code. The node gets method and attributes necessary to
+    run as intended as described in the following'''
     def __init__(self):
         '''this object doesn`t have any attributes. But some methods :)'''
 
@@ -116,7 +129,10 @@ class Controller:
         so non existing nodes or strings as input cannot be provided'''
         print(
               "Press 0 to", (len(nodes)-1), "& hit ENTER to select a node")
-        while True:
+        '''input validation for the choosing a sensor. The value may only be
+        int and within the range of sensors e.g. if there are 2 sensors, the
+        value may only be 0 or 1'''
+        while True:  # loop forever till value is an int and within limits
             print()
             try:
                 sensor_chosen = int(input())
@@ -125,16 +141,20 @@ class Controller:
                 else:
                     print("Please provide a number between 0 and",
                           (len(nodes)-1))
-            except ValueError:
+            except ValueError:  # throw exception if not an int
                 print("Please provide a number")
+        '''input validation for the choosing of a set value. if the chosen node
+        is a lamp the value may only be 0 = OFF or 1 = ON. If the chosen node
+        is a thermostat the value may between 0 and 39 degree. 39 degree is
+        a safety max level'''
         if nodes[sensor_chosen].type == "temp":
             print("Please provide a number between 0 and 39")
         if nodes[sensor_chosen].type == "lamp":
             print("Please type 0 [OFF] or 1 [ON]")
-        while True:
+        while True:  # loop forever till value is an int and within limits
             print()
             try:
-                new_set_value = int(input())
+                new_set_value = int(input())  # throw exception if not an int
                 if nodes[sensor_chosen].type == "temp":
                     if 0 <= new_set_value < 40:
                         break
@@ -147,6 +167,9 @@ class Controller:
                         print("Please type 0 [OFF] or 1 [ON]")
             except ValueError:
                 print("Please provide a number")
+        '''build 2 digits payload with leading zero, if the value is only on
+        digit. For example lamp off = 00, temperatur two degree = 02,
+        temperature 12 degree = 12'''
         if 0 <= new_set_value < 10:
             new_set_value_two_characters = "0" + str(new_set_value)
         else:
@@ -158,9 +181,11 @@ class Controller:
         payloads as per specification of transmission within the readme file
         '''
         for node in nodes:
+            '''create payload and send it to update nodes via QoS 1, since set
+            values need to be a high assurance to be received. For this a
+            Quality of Service (QoS 1) wqas chosen'''
             payload = (
                   client_id + "set-----" + str(node.set_value) + str(node.ID))
-            # payload = "cont7837set-----99temp4839"
             client.publish("home/temp", payload, qos=1)  # publish payload
 
 
@@ -194,15 +219,16 @@ any_var = input("integrate this node to the Docker network & then press Enter")
 
 '''the following connects you to the broker and subsrcibes to relevant topics
 of the broker'''
-client.tls_set("/app/certs/ca.crt")
-client.tls_insecure_set(True)
+client.tls_set("/app/certs/ca.crt")  # location of certificate
+client.tls_insecure_set(True)  # used to ignore broker cert != broker name
+'''used for authorization - different nodes have different rights'''
 client.username_pw_set(username="nebula", password="nebula1")
 print("Authenticating...")
-client.on_message = on_message
-client.on_connect = on_connect
-
-client.connect("mosquitto_container", 8883, 60)  # connect to broker
-print("MQTTS started")
+client.on_message = on_message  # function is called when there is message
+client.on_connect = on_connect  # function is called on connection attempt
+'''connect to the broker'''
+client.connect("mosquitto_container", 8883, 60)
+print("MQTTS started")  # provide feedback on GUI
 
 
 '''The follow double loop (inner loop and outer loop) controls the programm
@@ -218,7 +244,7 @@ while True:  # outer loop, which loops forever
         controller.update_idle_timer_of_nodes()  # update idle timers
         '''the following function is a callback function that gets activated
         per every message available at the broker for this node'''
-        client.on_message = on_message
+        client.on_message = on_message  # start when there is a message
         controller.render_gui_that_shows_values_of_node()  # render GUI
         client.loop_start()  # necessary for MQTT
         '''the following stops the inner loop, if enter is pressed'''
@@ -228,12 +254,12 @@ while True:  # outer loop, which loops forever
     '''in the outer loop the user sees a different GUI once that GUI method
     completes. The programm jumps back to the inner loop'''
     controller.render_gui_that_lets_the_user_change_set_values()
-    controller.transmit_set_values()
+    controller.transmit_set_values()  # create new set values
     '''the following function is a callback function that gets activated per
     every ACK message from the broker for this node. Note: ACK messages are
     only returned by the broker in QoS 1 or QoS 2 - see readme file for more
     information'''
-    client.on_publish = on_publish
+    client.on_publish = on_publish  # publish new set values
     '''the following delay is to show if ACK was received in this GUI before
     jumping to the other GUI again. A jump would rather confuse the user, so
     feedback is therfore provided in the settings GUI driven by the outer

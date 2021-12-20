@@ -15,6 +15,16 @@ def create_ID():
 
 
 def on_connect(client, userdata, flags, rc):
+    '''The broker acknowledgement will generate a callback (on_connect). To
+    make sure that connection attempt was successful a function to handle this
+    callback needs to be set up before creating the connection."client" is the
+    client instance for this callback, "userdata" is the private user data as
+    set in Client(), "flags" are response flags sent by the broker and "rc" is
+    the connection result which can indicate the following values: 0:
+    Connection successful 1: Connection refused - incorrect protocol version 2:
+    Connection     refused - invalid client identifier 3: Connection refused -
+    server unavailable 4: Connection refused - bad username or password 5:
+    Connection refused - not authorised 6-255: Currently unused.'''
     print("Connected flags ", str(flags), "result code", str(rc))
 
 
@@ -31,31 +41,38 @@ def on_message(client, userdata, msg):
     command_rcvd = (string_rcvd[8:11])  # disect the payload into command
     value_rcvd = (string_rcvd[16:18])  # actuator / sensor value
     recipient_ID_rcvd = (string_rcvd[18:26])  # recipient of this message
+    '''if a set command was found for this device, update the set value'''
     if command_rcvd == "set" and recipient_ID_rcvd == client_id:
         lamp.status = int(value_rcvd)
 
 
 class Lamp:
+    '''this class is used to create a node object to code OOP in the main /
+    looping part of the code. The node gets method and attributes necessary to
+    run as intended as described in the following'''
     def __init__(self, status, payload):
         '''set_temperature stores the value given by the controller the
         heating is set to'''
-        self.status = status
-        self.payload = payload
+        self.status = status  # 1=lamp on, 0 = lamp off
+        self.payload = payload  # payload that is send to broker
 
     def render_gui(self):
-        '''this methods renders a GUI of a thermometer'''
+        '''this methods renders a GUI of a lamp'''
         print(".")
         time.sleep(0.2)  # show sending for a short time
         os.system('printf "\033c"')  # clears screen
-        '''print essential data from a thermometer'''
+        '''print essential data from a lamp'''
         print("This node has the following ID: ", client_id)
         print()
         print("Status:", lamp.status)
 
     def create_payload(self):
+        '''this method creates the payload as per convention so others can read
+        what was sent by this node'''
         self.payload = client_id + "pub-----" + str(self.status)
 
 
+'''create some objects necessary for the programm to run'''
 client_id = create_ID()  # create a random client ID
 client = mqtt.Client(client_id)  # create a MQTT client object
 lamp = Lamp(0, "")  # create a thermometer object
@@ -67,24 +84,24 @@ MQTT connection to the broker can only be successfull, if the node is in the
 same network as the broker'''
 any_var = input("integrate this node to the Docker network & then press Enter")
 
-client.tls_set("/app/certs/ca.crt")
-client.tls_insecure_set(True)
-
+client.tls_set("/app/certs/ca.crt")  # location of certificate
+client.tls_insecure_set(True)  # used to ignore broker cert != broker name
+'''used for authorization - different nodes have different rights'''
 client.username_pw_set(username="freya", password="nebula3")
 print("Authenticating...")
-client.on_message = on_message
-client.on_connect = on_connect
-
+client.on_message = on_message  # function is called when there is message
+client.on_connect = on_connect  # function is called on connection attempt
+'''connect to the broker'''
 client.connect("mosquitto_container", 8883, 60)  # connect to broker
-print("MQTTS started")
+print("MQTTS started")  # provide feedback on GUI
 
-
+'''main part of the programm. Loops through iterative steps of the node'''
 while True:  # loop forever
     client.subscribe("home/temp", qos=1)  # subscribe with QoS of 1
     '''used to simulate a IoT device, since sleeping safes battery :)'''
     time.sleep(0.5)
     client.on_message = on_message  # check for message from broker
     client.loop_start()  # necessary for MQTT
-    lamp.create_payload()
-    client.publish("home/temp", lamp.payload)
+    lamp.create_payload()  # create the payload
+    client.publish("home/temp", lamp.payload)  # submit payload
     lamp.render_gui()  # render GUI, likely tiny LCD, if it was a real device
