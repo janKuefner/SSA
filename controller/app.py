@@ -20,6 +20,7 @@ def create_ID():
 
 
 def on_connect(client, userdata, flags, rc):
+    '''provide feedback on the connection status'''
     print("Connected flags", str(flags), "result code", str(rc))
 
 
