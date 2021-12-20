@@ -21,6 +21,15 @@ def create_ID():
 
 def on_connect(client, userdata, flags, rc):
     print("Connected flags", str(flags), "result code", str(rc))
+    '''The broker acknowledgement will generate a callback (on_connect). To make 
+    sure that connection attempt was successful a function to handle this callback 
+    needs to be set up before creating the connection."client" is the client instance
+    for this callback, "userdata" is the private user data as set in Client(), "flags" 
+    are response flags sent by the broker and "rc" is the connection result which can
+    indicate the following values: 0: Connection successful 1: Connection refused - 
+    incorrect protocol version 2: Connection refused - invalid client identifier 
+    3: Connection refused - server unavailable 4: Connection refused - bad username 
+    or password 5: Connection refused - not authorised 6-255: Currently unused.'''
 
 
 def on_message(client, userdata, msg):
@@ -196,9 +205,13 @@ of the broker'''
 client.tls_set("/app/certs/ca.crt")
 client.tls_insecure_set(True)
 client.username_pw_set(username="nebula", password="nebula1")
+'''username_pw_set() is a helper method of the Paho client that implements 
+username and password restrictions.Authentication credentials are transmitted 
+in clear text, and not secure without TSL encription.However,is is an easy way
+of restricting access to a broker.'''
 print("Authenticating...")
 client.on_message = on_message
-client.on_connect = on_connect
+client.on_connect = on_connect # attach function to callback
 
 client.connect("mosquitto_container", 8883, 60)  # connect to broker
 print("MQTTS started")
