@@ -1,7 +1,7 @@
 # This affects clients without username.
 topic read $SYS/#
 
-# This only affects clients with usernames.
+# This only affects clients with usernames. User "nebula" has all permissions to all topics, user "jan" has all permissions in home/temp topic and user "freya" has subscribe permission in home/temp topic.
 user nebula
 topic readwrite #
 
